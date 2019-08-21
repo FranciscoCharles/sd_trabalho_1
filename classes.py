@@ -12,7 +12,6 @@ class Usuario(object):
 					'id' : None}
 	def create_user(self, nome=None, password=None, prioridade=True, id=None):
 		now = datetime.now()
-		#now.year, now.month, now.day, now.hour, now.minute, now.second
 		if id == None:
 			id = str(now.day)+str(now.month)+str(now.year)+str(now.hour)+str(now.minute)+str(now.second)
 			self.get_id_valide()
