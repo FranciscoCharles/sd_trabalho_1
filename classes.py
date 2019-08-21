@@ -3,27 +3,6 @@ import pyrebase
 import time
 from datetime import datetime
 import urllib3
-
-class BD_FireBase(object):
-
-	def __init__(self):
-		firebaseConfig = {
-			"apiKey": "",
-			"authDomain": "",
-			"databaseURL": "",
-			"projectId": "",
-			"storageBucket": "",
-			"messagingSenderId": "",
-			"appId": ""
-		  }
-		self.firebase = pyrebase.initialize_app(firebaseConfig)
-		self.banco = self.firebase.database()
-	def ler_dados(self,local):
-		lista  = local.get()
-		for i in lista.each():
-			print(i.key(),i.val())
-	
-
 class Usuario(object):
 	def __init__(self, bd):
 		self.bd = bd
@@ -33,6 +12,7 @@ class Usuario(object):
 					'id' : None}
 	def create_user(self, nome=None, password=None, prioridade=True, id=None):
 		now = datetime.now()
+		#now.year, now.month, now.day, now.hour, now.minute, now.second
 		if id == None:
 			id = str(now.day)+str(now.month)+str(now.year)+str(now.hour)+str(now.minute)+str(now.second)
 			self.get_id_valide()
@@ -144,3 +124,6 @@ class Livro(object):
 				if (i.key() == self.data['id']):
 					return self.copy()
 		return None
+if __name__ == '__main__':
+	pass
+	

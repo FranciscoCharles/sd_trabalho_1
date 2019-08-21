@@ -3,7 +3,8 @@ from tkinter import messagebox
 import tkinter as tk
 from tkinter import ttk
 from datetime import datetime
-from classes import Usuario,BD_FireBase
+from classes import Usuario
+from database import BD_FireBase
 ALTURA_PADRAO = 2
 LARGURA_PADRAO = 40
 TAMANHO_BORDA_BOTAO = 8
@@ -61,6 +62,7 @@ class Login(Frame):
 		self['bg'] = COR_FUNDO
 		
 		logo = PhotoImage(file=diretorio_imagens+"icone.png")
+		#zoom(x=2,y=1)
 		self.frame_logo = Frame(self,bg=COR_FUNDO,pady=10)
 		self.frame_logo.pack()
 		self.logo = Label(self.frame_logo,bg=COR_FUNDO)
@@ -85,7 +87,7 @@ class Login(Frame):
 		self.frame_botoes = Frame(self, bg = COR_FUNDO,pady=10)
 		self.frame_botoes.pack()
 		self.botao_entrar = Button(self.frame_botoes,border=8,relief=RAISED,font=FONTE_PADRAO, text = "Entrar", width=LARGURA_PADRAO//3,command = lambda:self.valida_dados(controler),activebackground='green')
-		self.botao_entrar.grid(row=0,column=0)
+		self.botao_entrar.grid(row=0,column=0)#self.quit
 		self.botao_fechar = Button(self.frame_botoes,border=8,relief=RAISED,font=FONTE_PADRAO, text = "Fechar", width=LARGURA_PADRAO//3,command = self.quit, activebackground='green')
 		self.botao_fechar.grid(row=0,column=2)
 		self.botao_sobre = Button(self.frame_botoes,border=8,relief=RAISED,text="Voltar", command= lambda: controler.show_frame(ListarUsuario),font=FONTE_PADRAO,width=50,height=45)
@@ -362,6 +364,7 @@ class UsuarioBuscar(Frame):
 			messagebox.showerror("Erro", "Login ou Senha Invalidos")
 	def limpar_campos(self, controler):
 		self.entrada_nome.delete(0, END)
+		#controler.show_frame(MenuUsuarios)
 class ListarUsuario(Frame):
 
 	def __init__(self,parent,controler):
@@ -416,6 +419,22 @@ class UsuarioAtualizar(Frame):
 		
 		self.frame = Frame(self, bg = COR_FUNDO,pady=10)
 		self.frame.grid(row=0,column=1)
+		
+		#self.nome = Label(self.frame,border=2,relief=RIDGE,text="Nome : ",width=int(LARGURA_PADRAO/2),font=FONTE_PADRAO)
+		#self.password = Label(self.frame,border=2,relief=RIDGE,text="Password : ",width=int(LARGURA_PADRAO/2),font=FONTE_PADRAO)
+		#self.repete_password = Label(self.frame,border=2,relief=RIDGE,text="Repita o Password : ",width=int(LARGURA_PADRAO/2),font=FONTE_PADRAO)
+		
+		#self.entrada_nome = Entry(self.frame,width=80)
+		#self.entrada_password = Entry(self.frame,width=80,show='*')
+		#self.entrada_repete_password = Entry(self.frame,width=80,show='*')
+		
+		#self.nome.grid(row=0,column=0)
+		#self.password.grid(row=1,column=0)
+		#self.repete_password.grid(row=2,column=0)
+		
+		#self.entrada_nome.grid(row=0,column=1,ipady=ALTURA_ENTRY_PADRAO)
+		#self.entrada_password.grid(row=1,column=1,ipady=ALTURA_ENTRY_PADRAO)
+		#self.entrada_repete_password.grid(row=2,column=1,ipady=ALTURA_ENTRY_PADRAO)
 		self.frame_form = Frame(self.frame, bg = COR_FUNDO,pady=10)
 		self.frame_form.grid(row=0,column=1)
 		self.nome = Label(self.frame_form,border=2,relief=RIDGE,text="ID : ",font=FONTE_PADRAO)
@@ -424,6 +443,22 @@ class UsuarioAtualizar(Frame):
 		self.entrada_nome.grid(row=0,column=1,ipady=ALTURA_ENTRY_PADRAO)
 		self.botao_buscar = Button(self.frame_form,border=2,relief=TIPO_BORDA_BOTAO,text="Buscar",width=10, command=lambda:self.voltar(controler),font=("Comic Sans MS",11,"bold"))
 		self.botao_buscar.grid(row=0,column=2)
+		
+		"""
+		self.frame_botoes = Frame(self.frame, bg = COR_FUNDO,pady=10)
+		self.frame_botoes.pack()
+		self.botao_salvar = Button(self.frame_botoes,border=8,relief=RIDGE,font=FONTE_PADRAO, text = "Salvar",width = int(LARGURA_PADRAO/3),command = lambda:self.valida_dados(controler),activebackground='green')
+		self.botao_salvar.grid(row=0,column=0)
+		self.botao_cancelar = Button(self.frame_botoes,border=8,relief=RIDGE,font=FONTE_PADRAO, text = "Cancelar",width = int(LARGURA_PADRAO/3),command = lambda:self.limpar_campos(controler),activebackground='green')
+		self.botao_cancelar.grid(row=0,column=10)
+		
+	def valida_dados(self, controler):
+		controler.show_frame(MenuUsuarios)
+	def limpar_campos(self, controler):
+		self.entrada_nome.delete(0, END)
+		self.entrada_password.delete(0, END)
+		self.entrada_repete_password.delete(0, END)
+		controler.show_frame(MenuUsuarios)"""
 		
 		self.frame_tabela = Frame(self.frame, bg = COR_FUNDO,pady=10)
 		self.frame_tabela.grid(row=1,column=1)
@@ -459,9 +494,15 @@ class UsuarioAtualizar(Frame):
 		self.botao_remover.pack()
 		self.botao_remover = Button(self.frame_botao,border=2,relief=TIPO_BORDA_BOTAO,text="Buscar",width=10, command=lambda:self.voltar(controler),font=("Comic Sans MS",11,"bold"))
 		self.botao_remover.pack()
+		#1982019192438
 	def voltar(self,controler):
 		controler.show_frame(Login)
 	def item_atual(self,event):
+		#print(self.tree.selection())
+		#print(self.tree.focus())
+		#print(self.tree.index(self.tree.focus()))
+		#print(self.tree.get_children(self.tree.index(self.tree.focus())))
+		#print(self.tree.get_children([self.tree.selection()])['values'])
 		item = self.tree.item(self.tree.focus())['values']
 		if item:
 			#print(item)
@@ -725,3 +766,85 @@ def main():
 	app.mainloop()
 if __name__ == '__main__':
 	main()
+'''
+<Button>
+
+Qualquer botão do mouse pressionado
+
+<Button-1>
+
+Botão esquerdo do mouse pressionado.
+
+<Button-2>
+
+Botão do meio do mouse pressionado
+
+<Button-3>
+
+Botão direito do mouse pressionado
+
+<Button-4>
+
+Evento de scroll up (cima) para mouse com rodinhas
+
+<Button-5>
+
+Evento de scroll down (baixo) para mouse com rodinhas
+
+<Motion>
+
+Mouse se deslocou
+
+<B1-Motion>
+
+Mouse se deslocou com o botão esquerdo pressionado
+B2-Motion>
+
+<
+Mouse se deslocou com o botão do meio pressionado
+
+<B3-Motion>
+
+Mouse se deslocou com o botão direito pressionado
+
+<ButtonRelease>
+
+Botão foi liberado
+
+<ButtonRelease-1>
+
+Botão esquerdo foi liberado
+
+<ButtonRelease-2>
+
+Botão do meio foi liberado
+
+<ButtonRelease-3>
+
+Botão direito foi liberado
+
+<Double-Button>
+
+Clique duplo em um botão
+
+<Double-Button-1>
+
+Clique duplo no botão esquerdo
+
+<Double-Button-2>
+
+Clique duplo no botão do meio
+
+<Double-Button-3>
+
+Clique duplo no botão direito
+
+<Enter>
+
+O mouse entrou na área do widget (nada a ver com a tecla ENTER)
+
+<Leave>
+
+O mouse deixou a área do widget.
+1982019192438
+'''
