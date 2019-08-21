@@ -97,11 +97,17 @@ class Login(Frame):
 		self.botao_sobre.grid(row=0,column=1,padx=100)
 		self.botao_entrar.bind('<Enter>',self.btentrar_muda_cor)
 		self.botao_entrar.bind('<Leave>',self.btentrar_padrao)
+		self.botao_fechar.bind('<Enter>',self.btfechar_muda_cor)
+		self.botao_fechar.bind('<Leave>',self.btfechar_padrao)
 		
 	def btentrar_padrao(self,event):
 		self.botao_entrar["background"] = '#f0f0f0'
 	def btentrar_muda_cor(self,event):
 		self.botao_entrar["background"] = 'green'
+	def btfechar_padrao(self,event):
+		self.botao_fechar["background"] = '#f0f0f0'
+	def btfechar_muda_cor(self,event):
+		self.botao_fechar["background"] = 'green'
 	def valida_dados(self,controler):
 		global user
 		try:
@@ -419,22 +425,6 @@ class UsuarioAtualizar(Frame):
 		
 		self.frame = Frame(self, bg = COR_FUNDO,pady=10)
 		self.frame.grid(row=0,column=1)
-		
-		#self.nome = Label(self.frame,border=2,relief=RIDGE,text="Nome : ",width=int(LARGURA_PADRAO/2),font=FONTE_PADRAO)
-		#self.password = Label(self.frame,border=2,relief=RIDGE,text="Password : ",width=int(LARGURA_PADRAO/2),font=FONTE_PADRAO)
-		#self.repete_password = Label(self.frame,border=2,relief=RIDGE,text="Repita o Password : ",width=int(LARGURA_PADRAO/2),font=FONTE_PADRAO)
-		
-		#self.entrada_nome = Entry(self.frame,width=80)
-		#self.entrada_password = Entry(self.frame,width=80,show='*')
-		#self.entrada_repete_password = Entry(self.frame,width=80,show='*')
-		
-		#self.nome.grid(row=0,column=0)
-		#self.password.grid(row=1,column=0)
-		#self.repete_password.grid(row=2,column=0)
-		
-		#self.entrada_nome.grid(row=0,column=1,ipady=ALTURA_ENTRY_PADRAO)
-		#self.entrada_password.grid(row=1,column=1,ipady=ALTURA_ENTRY_PADRAO)
-		#self.entrada_repete_password.grid(row=2,column=1,ipady=ALTURA_ENTRY_PADRAO)
 		self.frame_form = Frame(self.frame, bg = COR_FUNDO,pady=10)
 		self.frame_form.grid(row=0,column=1)
 		self.nome = Label(self.frame_form,border=2,relief=RIDGE,text="ID : ",font=FONTE_PADRAO)
@@ -443,22 +433,6 @@ class UsuarioAtualizar(Frame):
 		self.entrada_nome.grid(row=0,column=1,ipady=ALTURA_ENTRY_PADRAO)
 		self.botao_buscar = Button(self.frame_form,border=2,relief=TIPO_BORDA_BOTAO,text="Buscar",width=10, command=lambda:self.voltar(controler),font=("Comic Sans MS",11,"bold"))
 		self.botao_buscar.grid(row=0,column=2)
-		
-		"""
-		self.frame_botoes = Frame(self.frame, bg = COR_FUNDO,pady=10)
-		self.frame_botoes.pack()
-		self.botao_salvar = Button(self.frame_botoes,border=8,relief=RIDGE,font=FONTE_PADRAO, text = "Salvar",width = int(LARGURA_PADRAO/3),command = lambda:self.valida_dados(controler),activebackground='green')
-		self.botao_salvar.grid(row=0,column=0)
-		self.botao_cancelar = Button(self.frame_botoes,border=8,relief=RIDGE,font=FONTE_PADRAO, text = "Cancelar",width = int(LARGURA_PADRAO/3),command = lambda:self.limpar_campos(controler),activebackground='green')
-		self.botao_cancelar.grid(row=0,column=10)
-		
-	def valida_dados(self, controler):
-		controler.show_frame(MenuUsuarios)
-	def limpar_campos(self, controler):
-		self.entrada_nome.delete(0, END)
-		self.entrada_password.delete(0, END)
-		self.entrada_repete_password.delete(0, END)
-		controler.show_frame(MenuUsuarios)"""
 		
 		self.frame_tabela = Frame(self.frame, bg = COR_FUNDO,pady=10)
 		self.frame_tabela.grid(row=1,column=1)
@@ -488,7 +462,7 @@ class UsuarioAtualizar(Frame):
 		self.frame_botao = Frame(self.frame,bg = COR_FUNDO,pady=10)
 		self.frame_botao.grid(row=2,column=1)
 		#place_forget()
-		self.botao_atualizar = Button(self.frame_botao,border=TAMANHO_BORDA_BOTAO,relief=TIPO_BORDA_BOTAO,text="Fechar",width= 10, command=lambda:self.voltar(controler),font=font=("Comic Sans MS",11,"bold"))
+		self.botao_atualizar = Button(self.frame_botao,border=TAMANHO_BORDA_BOTAO,relief=TIPO_BORDA_BOTAO,text="Fechar",width= 10, command=lambda:self.voltar(controler),font=("Comic Sans MS",11,"bold"))
 		self.botao_atualizar.pack()
 		self.botao_remover = Button(self.frame_botao,border=2,relief=TIPO_BORDA_BOTAO,text="Buscar",width=10, command=lambda:self.voltar(controler),font=("Comic Sans MS",11,"bold"))
 		self.botao_remover.pack()
@@ -766,85 +740,3 @@ def main():
 	app.mainloop()
 if __name__ == '__main__':
 	main()
-'''
-<Button>
-
-Qualquer botão do mouse pressionado
-
-<Button-1>
-
-Botão esquerdo do mouse pressionado.
-
-<Button-2>
-
-Botão do meio do mouse pressionado
-
-<Button-3>
-
-Botão direito do mouse pressionado
-
-<Button-4>
-
-Evento de scroll up (cima) para mouse com rodinhas
-
-<Button-5>
-
-Evento de scroll down (baixo) para mouse com rodinhas
-
-<Motion>
-
-Mouse se deslocou
-
-<B1-Motion>
-
-Mouse se deslocou com o botão esquerdo pressionado
-B2-Motion>
-
-<
-Mouse se deslocou com o botão do meio pressionado
-
-<B3-Motion>
-
-Mouse se deslocou com o botão direito pressionado
-
-<ButtonRelease>
-
-Botão foi liberado
-
-<ButtonRelease-1>
-
-Botão esquerdo foi liberado
-
-<ButtonRelease-2>
-
-Botão do meio foi liberado
-
-<ButtonRelease-3>
-
-Botão direito foi liberado
-
-<Double-Button>
-
-Clique duplo em um botão
-
-<Double-Button-1>
-
-Clique duplo no botão esquerdo
-
-<Double-Button-2>
-
-Clique duplo no botão do meio
-
-<Double-Button-3>
-
-Clique duplo no botão direito
-
-<Enter>
-
-O mouse entrou na área do widget (nada a ver com a tecla ENTER)
-
-<Leave>
-
-O mouse deixou a área do widget.
-1982019192438
-'''
