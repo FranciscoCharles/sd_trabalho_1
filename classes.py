@@ -48,6 +48,13 @@ class Usuario(object):
 				self.data = dados.copy()
 				return True
 		return False
+	def get_user_not_password(self):
+		for user in self.bd.child().child('usuarios').get().each():
+			dados = user.val()
+			if dados['id'] == self.data['id']:
+				self.data = dados.copy()
+				return True
+		return False
 	def user_authentication(self):
 		lista  = self.bd.child().child('usuarios').get().each()
 		if lista:
@@ -57,7 +64,7 @@ class Usuario(object):
 					return True
 		return False
 	def get_id_valide(self):
-		while self.user_id_exists() and (self.data['id']==None):
+		while self.user_id_exists() or (self.data['id']==None):
 			now = datetime.now()
 			self.data['id'] = str(now.day)+str(now.month)+str(now.year)+str(now.hour)+str(now.minute)+str(now.second)
 	def user_id_exists(self):
@@ -82,6 +89,7 @@ class Livro(object):
 		now = datetime.now()
 		if id == None:
 			id = str(now.day)+str(now.month)+str(now.year)+str(now.hour)+str(now.minute)+str(now.second)
+		self.get_id_valide()
 		self.data = {
 					'titulo' : titulo,
 					'autor' : autor,
@@ -90,6 +98,10 @@ class Livro(object):
 					'id': id,
 					'qt_total': qt_total,
 					'disponivel': disponivel}
+	def get_id_valide(self):
+		while self.book_id_exists() or (self.data['id']==None):
+			now = datetime.now()
+			self.data['id'] = str(now.day)+str(now.month)+str(now.year)+str(now.hour)+str(now.minute)+str(now.second)
 	def copy(self):
 		book = Livro()
 		book.data = self.data.copy()

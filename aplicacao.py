@@ -3,7 +3,7 @@ from tkinter import messagebox
 import tkinter as tk
 from tkinter import ttk
 from datetime import datetime
-from classes import Usuario
+from classes import Usuario,Livro
 from database import BD_FireBase
 ALTURA_PADRAO = 2
 LARGURA_PADRAO = 40
@@ -13,9 +13,11 @@ COR_FUNDO = '#105e74'
 FONTE_PADRAO = ("Comic Sans MS",15,"bold")
 ALTURA_ENTRY_PADRAO = 8
 diretorio_imagens = 'images/'
-#gerenciador de frames
+
 Bd = BD_FireBase()
 user = Usuario(Bd.banco)
+livro = Livro(Bd.banco)
+
 
 class Gerenciador(tk.Tk):
 
@@ -31,9 +33,9 @@ class Gerenciador(tk.Tk):
 		self.container.grid_rowconfigure(0,weight=1)
 		self.container.grid_columnconfigure(0,weight=1)
 		
-		self.TELAS = [Login, MenuPrincipal, MenuLivros, MenuUsuarios,
+		self.TELAS = [Login, MenuPrincipal, MenuLivros, MenuUsuarioAdm,
 					LivroAdicionar, LivroAtualizar, LivroBuscar, LivroRemover,
-					UsuarioAdicionar, UsuarioAtualizar, UsuarioBuscar, UsuarioRemover,ListarUsuario,
+					UsuarioAdmAdd, UsuarioAdmGerenciarDados,UsuarioAdmTrocarSenha,
 					Sobre]
 		
 		self.frames = {}
@@ -62,7 +64,6 @@ class Login(Frame):
 		self['bg'] = COR_FUNDO
 		
 		logo = PhotoImage(file=diretorio_imagens+"icone.png")
-		#zoom(x=2,y=1)
 		self.frame_logo = Frame(self,bg=COR_FUNDO,pady=10)
 		self.frame_logo.pack()
 		self.logo = Label(self.frame_logo,bg=COR_FUNDO)
@@ -75,8 +76,8 @@ class Login(Frame):
 		self.login = Label(self.frame_usuario,border=2,relief=RIDGE,text="Login : ",width=int(LARGURA_PADRAO/3),font=FONTE_PADRAO)
 		self.senha = Label(self.frame_usuario,border=2,relief=RIDGE,text="Senha : ",width=int(LARGURA_PADRAO/3),font=FONTE_PADRAO)
 		
-		self.entrada_login = Entry(self.frame_usuario,width=80)
-		self.entrada_senha = Entry(self.frame_usuario,width=80,show="*",)
+		self.entrada_login = Entry(self.frame_usuario,width=40)
+		self.entrada_senha = Entry(self.frame_usuario,width=40,show="*",)
 		
 		self.login.grid(row=0,column=0)
 		self.senha.grid(row=1,column=0)
@@ -86,19 +87,18 @@ class Login(Frame):
 		
 		self.frame_botoes = Frame(self, bg = COR_FUNDO,pady=10)
 		self.frame_botoes.pack()
-		self.botao_entrar = Button(self.frame_botoes,border=8,relief=RAISED,font=FONTE_PADRAO, text = "Entrar", width=LARGURA_PADRAO//3,command = lambda:self.valida_dados(controler),activebackground='green')
-		self.botao_entrar.grid(row=0,column=0)#self.quit
-		self.botao_fechar = Button(self.frame_botoes,border=8,relief=RAISED,font=FONTE_PADRAO, text = "Fechar", width=LARGURA_PADRAO//3,command = self.quit, activebackground='green')
+		self.botao_entrar = Button(self.frame_botoes,border=8,relief=RAISED,font=FONTE_PADRAO, text = "Entrar", width=LARGURA_PADRAO//3,bg='#f0f0f0',command = lambda:self.valida_dados(controler),activebackground='green')
+		self.botao_entrar.grid(row=0,column=0)
+		self.botao_fechar = Button(self.frame_botoes,border=8,relief=RAISED,font=FONTE_PADRAO, text = "Fechar", width=LARGURA_PADRAO//3,bg='#f0f0f0',command = self.quit, activebackground='green')
 		self.botao_fechar.grid(row=0,column=2)
-		self.botao_sobre = Button(self.frame_botoes,border=8,relief=RAISED,text="Voltar", command= lambda: controler.show_frame(ListarUsuario),font=FONTE_PADRAO,width=50,height=45)
-		sobre = PhotoImage(file=diretorio_imagens+"icone_sobre.png")
-		self.botao_sobre['image'] = sobre
-		self.botao_sobre.image = sobre
-		self.botao_sobre.grid(row=0,column=1,padx=100)
+		self.botao_sobre = Button(self.frame_botoes,border=8,relief=RAISED,font=FONTE_PADRAO, text="Sobre", command= lambda: controler.show_frame(Sobre),width=LARGURA_PADRAO//3,bg='#f0f0f0')
+		self.botao_sobre.grid(row=0,column=1,padx=10)
 		self.botao_entrar.bind('<Enter>',self.btentrar_muda_cor)
 		self.botao_entrar.bind('<Leave>',self.btentrar_padrao)
 		self.botao_fechar.bind('<Enter>',self.btfechar_muda_cor)
 		self.botao_fechar.bind('<Leave>',self.btfechar_padrao)
+		self.botao_sobre.bind('<Enter>',self.btsobre_muda_cor)
+		self.botao_sobre.bind('<Leave>',self.btsobre_padrao)
 		
 	def btentrar_padrao(self,event):
 		self.botao_entrar["background"] = '#f0f0f0'
@@ -108,6 +108,10 @@ class Login(Frame):
 		self.botao_fechar["background"] = '#f0f0f0'
 	def btfechar_muda_cor(self,event):
 		self.botao_fechar["background"] = 'green'
+	def btsobre_padrao(self,event):
+		self.botao_sobre["background"] = '#f0f0f0'
+	def btsobre_muda_cor(self,event):
+		self.botao_sobre["background"] = 'green'
 	def valida_dados(self,controler):
 		global user
 		try:
@@ -147,7 +151,7 @@ class MenuPrincipal(Frame):
 		self.logo.pack()
 		self.frame_menu = Frame(self, bg = COR_FUNDO,pady=20)
 		self.frame_menu.pack()
-		self.botao_usuario = Button(self.frame_menu,border=TAMANHO_BORDA_BOTAO,relief=TIPO_BORDA_BOTAO, text = "Menu Usuarios",width = LARGURA_PADRAO,height=ALTURA_PADRAO,command = lambda:controler.show_frame(MenuUsuarios),activebackground='green',font=FONTE_PADRAO)
+		self.botao_usuario = Button(self.frame_menu,border=TAMANHO_BORDA_BOTAO,relief=TIPO_BORDA_BOTAO, text = "Menu Usuarios",width = LARGURA_PADRAO,height=ALTURA_PADRAO,command = lambda:controler.show_frame(MenuUsuarioAdm),activebackground='green',font=FONTE_PADRAO)
 		self.botao_livros = Button(self.frame_menu,border=TAMANHO_BORDA_BOTAO,relief=TIPO_BORDA_BOTAO, text = "Menu Livros",width = LARGURA_PADRAO,height=ALTURA_PADRAO,command = lambda:controler.show_frame(MenuLivros),activebackground='green',font=FONTE_PADRAO)
 		self.botao_voltar = Button(self.frame_menu,border=TAMANHO_BORDA_BOTAO,relief=TIPO_BORDA_BOTAO, text = "Sair",width = LARGURA_PADRAO,height=ALTURA_PADRAO,command = lambda:controler.show_frame(Login),activebackground='green',font=FONTE_PADRAO)
 		self.botao_usuario.pack()
@@ -186,14 +190,12 @@ class MenuLivros(Frame):
 		self.logo.pack()
 		self.frame_menu = Frame(self, bg = COR_FUNDO,pady=80)
 		self.frame_menu.grid(row=0,column=1)
-		self.botao_adcionar = Button(self.frame_menu,border=TAMANHO_BORDA_BOTAO,relief=RAISED, text = "Adcionar novo livro",width = LARGURA_PADRAO,height=ALTURA_PADRAO,command = lambda:controler.show_frame(LivroAdicionar),activebackground='green',font=FONTE_PADRAO,highlightcolor='GREEN')		
-		self.botao_atualizar = Button(self.frame_menu,border=TAMANHO_BORDA_BOTAO,relief=RAISED, text = "Atualizar dados do livro",width = LARGURA_PADRAO,height=ALTURA_PADRAO,command = lambda:controler.show_frame(LivroAtualizar),activebackground='green',font=FONTE_PADRAO)
-		self.botao_buscar = Button(self.frame_menu,border=TAMANHO_BORDA_BOTAO,relief=RAISED, text = "Buscar Livro",width = LARGURA_PADRAO,height=ALTURA_PADRAO,command = lambda:controler.show_frame(LivroBuscar),activebackground='green',font=FONTE_PADRAO)
-		self.botao_remover = Button(self.frame_menu,border=TAMANHO_BORDA_BOTAO,relief=RAISED, text = "Remover Livro",width = LARGURA_PADRAO,height=ALTURA_PADRAO,command = lambda:controler.show_frame(LivroRemover),activebackground='green',font=FONTE_PADRAO)
+		self.botao_adcionar = Button(self.frame_menu,border=TAMANHO_BORDA_BOTAO,relief=RAISED, text = "Adcionar",width = LARGURA_PADRAO,height=ALTURA_PADRAO,command = lambda:controler.show_frame(LivroAdicionar),activebackground='green',font=FONTE_PADRAO,highlightcolor='GREEN')		
+		self.botao_atualizar = Button(self.frame_menu,border=TAMANHO_BORDA_BOTAO,relief=RAISED, text = "Gerenciar dados",width = LARGURA_PADRAO,height=ALTURA_PADRAO,command = lambda:controler.show_frame(LivroAtualizar),activebackground='green',font=FONTE_PADRAO)
+		self.botao_remover = Button(self.frame_menu,border=TAMANHO_BORDA_BOTAO,relief=RAISED, text = "Realizar devolução",width = LARGURA_PADRAO,height=ALTURA_PADRAO,command = lambda:controler.show_frame(LivroRemover),activebackground='green',font=FONTE_PADRAO)
 		self.botao_voltar = Button(self.frame_menu,border=TAMANHO_BORDA_BOTAO,relief=RAISED, text = "Voltar",width = LARGURA_PADRAO,height=ALTURA_PADRAO,command = lambda:controler.show_frame(MenuPrincipal),activebackground='green',font=FONTE_PADRAO)
 		self.botao_adcionar.pack()
 		self.botao_atualizar.pack()
-		self.botao_buscar.pack()
 		self.botao_remover.pack()
 		self.botao_voltar.pack()
 		#eventos
@@ -201,8 +203,6 @@ class MenuLivros(Frame):
 		self.botao_adcionar.bind('<Leave>',self.btadd_padrao)
 		self.botao_atualizar.bind('<Enter>',self.btatualizar_muda_cor)
 		self.botao_atualizar.bind('<Leave>',self.btatualizar_padrao)
-		self.botao_buscar.bind('<Enter>',self.btbuscar_muda_cor)
-		self.botao_buscar.bind('<Leave>',self.btbuscar_padrao)
 		self.botao_remover.bind('<Enter>',self.btremover_muda_cor)
 		self.botao_remover.bind('<Leave>',self.btremover_padrao)
 		self.botao_voltar.bind('<Enter>',self.btvoltar_muda_cor)
@@ -216,10 +216,6 @@ class MenuLivros(Frame):
 		self.botao_atualizar["background"] = '#f0f0f0'
 	def btatualizar_muda_cor(self,event):
 		self.botao_atualizar["background"] = 'green'
-	def btbuscar_padrao(self,event):
-		self.botao_buscar["background"] = '#f0f0f0'
-	def btbuscar_muda_cor(self,event):
-		self.botao_buscar["background"] = 'green'
 	def btremover_padrao(self,event):
 		self.botao_remover["background"] = '#f0f0f0'
 	def btremover_muda_cor(self,event):
@@ -228,9 +224,8 @@ class MenuLivros(Frame):
 		self.botao_voltar["background"] = '#f0f0f0'
 	def btvoltar_muda_cor(self,event):
 		self.botao_voltar["background"] = 'green'
-		
 #telas de funcionalidades de usuario
-class MenuUsuarios(Frame):
+class MenuUsuarioAdm(Frame):
 
 	def __init__(self,parent,controler):
 		Frame.__init__(self,parent)
@@ -244,18 +239,95 @@ class MenuUsuarios(Frame):
 		self.logo.pack()
 		self.frame_menu = Frame(self, bg = COR_FUNDO,pady=80)
 		self.frame_menu.grid(row=0,column=1)
-		self.botao_adcionar = Button(self.frame_menu,border=TAMANHO_BORDA_BOTAO,relief=TIPO_BORDA_BOTAO, text = "Adcionar novo Usuario",width = LARGURA_PADRAO,height=ALTURA_PADRAO,command = lambda:controler.show_frame(UsuarioAdicionar),activebackground='green',font=FONTE_PADRAO)
-		self.botao_atualizar = Button(self.frame_menu,border=TAMANHO_BORDA_BOTAO,relief=TIPO_BORDA_BOTAO, text = "Atualizar dados de Usuario",width = LARGURA_PADRAO,height=ALTURA_PADRAO,command = lambda:controler.show_frame(UsuarioAtualizar),activebackground='green',font=FONTE_PADRAO)
-		self.botao_buscar = Button(self.frame_menu,border=TAMANHO_BORDA_BOTAO,relief=TIPO_BORDA_BOTAO, text = "Buscar Usuario",width = LARGURA_PADRAO,height=ALTURA_PADRAO,command = lambda:controler.show_frame(UsuarioBuscar),activebackground='green',font=FONTE_PADRAO)
-		self.botao_remover = Button(self.frame_menu,border=TAMANHO_BORDA_BOTAO,relief=TIPO_BORDA_BOTAO, text = "Remover Usuario",width = LARGURA_PADRAO,height=ALTURA_PADRAO,command = lambda:controler.show_frame(UsuarioRemover),activebackground='green',font=FONTE_PADRAO)
-		self.botao_voltar = Button(self.frame_menu,border=TAMANHO_BORDA_BOTAO,relief=TIPO_BORDA_BOTAO, text = "voltar",width = LARGURA_PADRAO,height=ALTURA_PADRAO,command = lambda:controler.show_frame(MenuPrincipal),activebackground='green',font=FONTE_PADRAO)
+		self.botao_adcionar = Button(self.frame_menu,border=TAMANHO_BORDA_BOTAO,relief=TIPO_BORDA_BOTAO, text = "Adcionar",width = LARGURA_PADRAO,height=ALTURA_PADRAO,command = lambda:controler.show_frame(UsuarioAdmAdd),activebackground='green',font=FONTE_PADRAO)
+		self.botao_gerenciar = Button(self.frame_menu,border=TAMANHO_BORDA_BOTAO,relief=TIPO_BORDA_BOTAO, text = "Gerenciar dados",width = LARGURA_PADRAO,height=ALTURA_PADRAO,command = lambda:controler.show_frame(UsuarioAdmGerenciarDados),activebackground='green',font=FONTE_PADRAO)
+		self.botao_voltar = Button(self.frame_menu,border=TAMANHO_BORDA_BOTAO,relief=TIPO_BORDA_BOTAO, text = "Voltar",width = LARGURA_PADRAO,height=ALTURA_PADRAO,command = lambda:controler.show_frame(MenuPrincipal),activebackground='green',font=FONTE_PADRAO)
 		self.botao_adcionar.pack()
-		self.botao_atualizar.pack()
-		self.botao_buscar.pack()
-		self.botao_remover.pack()
+		self.botao_gerenciar.pack()
 		self.botao_voltar.pack()
 		
-class UsuarioAdicionar(Frame):
+class UsuarioAdmAdd(Frame):
+	def __init__(self,parent,controler):
+		Frame.__init__(self,parent)
+		self['bg'] = COR_FUNDO
+		
+		logo = PhotoImage(file=diretorio_imagens+"icone_user_add.png")		
+		self.frame_logo = Frame(self,bg=COR_FUNDO,pady=50)
+		self.frame_logo.pack()
+		self.logo = Label(self.frame_logo,bg=COR_FUNDO)
+		self.logo["image"] = logo
+		self.logo.image = logo
+		self.logo.pack()
+		
+		self.frame = Frame(self, bg = COR_FUNDO,pady=10)
+		self.frame.pack()
+		
+		self.nome = Label(self.frame,border=2,relief=RIDGE,text="Nome : ",width=int(LARGURA_PADRAO/2),font=FONTE_PADRAO)
+		self.password = Label(self.frame,border=2,relief=RIDGE,text="Password : ",width=int(LARGURA_PADRAO/2),font=FONTE_PADRAO)
+		self.repete_password = Label(self.frame,border=2,relief=RIDGE,text="Repita o Password : ",width=int(LARGURA_PADRAO/2),font=FONTE_PADRAO)
+		
+		self.entrada_nome = Entry(self.frame,width=50)
+		self.entrada_password = Entry(self.frame,width=50,show='*')
+		self.entrada_repete_password = Entry(self.frame,width=50,show='*')
+		
+		self.nome.grid(row=0,column=0)
+		self.password.grid(row=1,column=0)
+		self.repete_password.grid(row=2,column=0)
+		
+		self.entrada_nome.grid(row=0,column=1,ipady=ALTURA_ENTRY_PADRAO)
+		self.entrada_password.grid(row=1,column=1,ipady=ALTURA_ENTRY_PADRAO)
+		self.entrada_repete_password.grid(row=2,column=1,ipady=ALTURA_ENTRY_PADRAO)
+		
+		self.frame_adm = Frame(self,pady=10)
+		self.frame_adm.pack()
+		
+		self.admtmp = IntVar()
+		self.adm = True
+		self.administrador = Radiobutton(self.frame_adm,text="Administrador",padx = 20,value=1,variable=self.admtmp)
+		self.administrador.select()
+		self.administrador.pack(side = LEFT)
+		self.simples = Radiobutton(self.frame_adm,text="Usuario Simples",padx = 20,value=2,variable=self.admtmp)
+		self.simples.pack(side = LEFT)
+		
+		self.frame_botoes = Frame(self, bg = COR_FUNDO,pady=10)
+		self.frame_botoes.pack()
+		self.botao_salvar = Button(self.frame_botoes,border=8,relief=RAISED,font=FONTE_PADRAO, text = "Salvar",width = int(LARGURA_PADRAO/3),command = lambda:self.valida_dados(controler),activebackground='green',bg='#f0f0f0')
+		self.botao_salvar.grid(row=0,column=0)
+		self.botao_cancelar = Button(self.frame_botoes,border=8,relief=RAISED,font=FONTE_PADRAO, text = "Cancelar",width = int(LARGURA_PADRAO/3),command = lambda:controler.show_frame(MenuUsuarioAdm),activebackground='green',bg='#f0f0f0')
+		self.botao_cancelar.grid(row=0,column=10)
+		
+		
+	def valida_dados(self, controler):
+		global user
+		
+		nome = self.entrada_nome.get()
+		password = self.entrada_password.get()
+		rpassword = self.entrada_repete_password.get()
+		user.data['password'] = password
+		
+		if self.admtmp.get() == 1:
+			self.adm = True
+		else:
+			self.adm = False
+			
+		
+		if(nome=='' and password=='' and rpassword==''):
+			messagebox.showwarning("Aviso", "Preencha os Campos")
+		elif(nome==''):
+			messagebox.showwarning("Aviso", "Preencha o Nome!")
+		elif(password==''):
+			messagebox.showwarning("Aviso", "Preencha o Password!")
+		elif(rpassword==''):
+			messagebox.showwarning("Aviso", "repita o Password!")
+		elif(password != rpassword):
+			messagebox.showwarning("Aviso", "passwords diferem!")
+		else:
+			messagebox.showinfo("Sucesso","Usuario criado com sucesso.")
+			user.create_user(nome,password)
+			user.data['adm'] = self.adm
+			user.add()
+			controler.show_frame(MenuUsuarioAdm)
+class UsuarioDevolucao(Frame):
 	def __init__(self,parent,controler):
 		Frame.__init__(self,parent)
 		self['bg'] = COR_FUNDO
@@ -275,9 +347,9 @@ class UsuarioAdicionar(Frame):
 		self.password = Label(self.frame,border=2,relief=RIDGE,text="Password : ",width=int(LARGURA_PADRAO/2),font=FONTE_PADRAO)
 		self.repete_password = Label(self.frame,border=2,relief=RIDGE,text="Repita o Password : ",width=int(LARGURA_PADRAO/2),font=FONTE_PADRAO)
 		
-		self.entrada_nome = Entry(self.frame,width=80)
-		self.entrada_password = Entry(self.frame,width=80,show='*')
-		self.entrada_repete_password = Entry(self.frame,width=80,show='*')
+		self.entrada_nome = Entry(self.frame,width=50)
+		self.entrada_password = Entry(self.frame,width=50,show='*')
+		self.entrada_repete_password = Entry(self.frame,width=50,show='*')
 		
 		self.nome.grid(row=0,column=0)
 		self.password.grid(row=1,column=0)
@@ -317,129 +389,55 @@ class UsuarioAdicionar(Frame):
 			messagebox.showinfo("Sucesso","Usuario criado com sucesso.")
 			user.create_user(nome,password)
 			user.add()
-			controler.show_frame(MenuUsuarios)	
-class UsuarioBuscar(Frame):
+			controler.show_frame(MenuUsuarios)
+class MenuUsuarioComum(Frame):
+	def __init__(self,parent,controler):
+		pass
+class UsuarioComumAdd(Frame):
+	def __init__(self,parent,controler):
+		pass
+class UsuarioComumPedido(Frame):
+	def __init__(self,parent,controler):
+		pass
+class UsuarioComumRenovar(Frame):
+	def __init__(self,parent,controler):
+		pass
+class UsuarioAdmGerenciarDados(Frame):
 	def __init__(self,parent,controler):
 		Frame.__init__(self,parent)
 		self['bg'] = COR_FUNDO
-		
-		logo = PhotoImage(file=diretorio_imagens+"icone_usuario.png")		
-		self.frame_logo = Frame(self,bg=COR_FUNDO,pady=50)
-		self.frame_logo.pack()
-		self.logo = Label(self.frame_logo,bg=COR_FUNDO)
-		self.logo["image"] = logo
-		self.logo.image = logo
-		self.logo.pack()
-		
-		self.frame = Frame(self, bg = COR_FUNDO,pady=10)
-		self.frame.pack()
-		
-		self.nome = Label(self.frame,border=2,relief=RIDGE,text="Nome do Usuario : ",width=int(LARGURA_PADRAO/2),font=FONTE_PADRAO)
-		
-		self.entrada_nome = Entry(self.frame,width=80)
-		self.nome.grid(row=0,column=0)
-		self.entrada_nome.grid(row=0,column=1,ipady=ALTURA_ENTRY_PADRAO)
-		
-		self.frame_botoes = Frame(self, bg = COR_FUNDO,pady=10)
-		self.frame_botoes.pack()
-		self.botao_buscar = Button(self.frame_botoes,border=8,relief=RIDGE,font=FONTE_PADRAO, text = "Buscar",width = int(LARGURA_PADRAO/3),command = lambda:self.valida_dados(controler),activebackground='green')
-		self.botao_buscar.grid(row=0,column=0)
-		self.botao_cancelar = Button(self.frame_botoes,border=8,relief=RIDGE,font=FONTE_PADRAO, text = "Cancelar",width = int(LARGURA_PADRAO/3),command = lambda:self.limpar_campos(controler),activebackground='green')
-		self.botao_cancelar.grid(row=0,column=10)
-		
-	def valida_dados(self, controler):
-		global user
-		nome = self.entrada_nome.get()
-		password = self.entrada_password.get()
-		rpassword = self.entrada_password.get()
-		
-		user.data['id'] = login
-		user.data['password'] = senha
-		if(login=='' and senha==''):
-			messagebox.showwarning("Aviso", "Preencha os Campos")
-		elif(login==''):
-			messagebox.showwarning("Aviso", "Preencha o Campo Login")
-		elif(senha==''):
-			messagebox.showwarning("Aviso", "Preencha o Campo Senha")
-		elif(user.user_authentication()):
-			user.get_user()
-			messagebox.showinfo("Acesso", user.data['nome']+" seja bem vindo ao nosso sistema.")
-			controler.show_frame(MenuPrincipal)
-		else:
-			self.limpar_campos()
-			messagebox.showerror("Erro", "Login ou Senha Invalidos")
-	def limpar_campos(self, controler):
-		self.entrada_nome.delete(0, END)
-		#controler.show_frame(MenuUsuarios)
-class ListarUsuario(Frame):
-
-	def __init__(self,parent,controler):
-		Frame.__init__(self,parent)
-		self['bg'] = COR_FUNDO
-		self.frame_titulo = Frame(self, bg = COR_FUNDO,pady=10,padx=10,height=600,width=900)
-		self.frame_titulo.pack()
-		self.titulo = Label(self.frame_titulo,border=TAMANHO_BORDA_BOTAO,relief=TIPO_BORDA_BOTAO,text= "Listando Participante",font=FONTE_PADRAO,width=40,height=2)
-		self.titulo.grid(row=0,column=1)
-		self.frame_texto = Frame(self, bg = COR_FUNDO,pady=10,padx=10,height=200,width=100)
-		self.frame_texto.pack()
-		
-		# Inicia o Treeview com as seguintes colunas:
-		self.frame_texto.pack()
-		self.dataCols = ['ID','Nome']
-		self.tree = ttk.Treeview(self.frame_texto,columns=self.dataCols, show='headings',height=20)
-		self.tree.grid(row=0, column=0, sticky=tk.N + tk.S + tk.W + tk.E)
-		#diminue a largura da coluna
-		self.tree.column("ID",minwidth=30,width=30)
-		self.tree.column("Nome",minwidth=100,width=100)
-		# Barras de rolagem
-		ysb = ttk.Scrollbar(self.frame_texto,orient=VERTICAL, command=self.tree.yview)
-		xsb = ttk.Scrollbar(self.frame_texto,orient=HORIZONTAL, command=self.tree.xview)
-		self.tree['yscroll'] = ysb.set
-		self.tree['xscroll'] = xsb.set
-		ysb.grid(row=0, column=1, sticky=tk.N + tk.S)
-		xsb.grid(row=1, column=0, sticky=tk.E + tk.W)
-		# Define o textos do cabeçalho (nome em maiúsculas)
-		for c in self.dataCols:
-			self.tree.heading(c, text=c.title())
-		# Dados:
-		self.data = [ 'a' for _ in range(20)]
-		# Insere cada item dos dados
-		for item in self.data:
-			self.tree.insert('', 'end', values  = item)
-		self.botao = Button(self,border=TAMANHO_BORDA_BOTAO,relief=TIPO_BORDA_BOTAO,text="Fechar",width= 10, command=lambda:self.voltar(controler),font=FONTE_PADRAO)
-		self.botao.pack()
-	def voltar(self,controler):
-		controler.show_frame(Login)
-class UsuarioAtualizar(Frame):
-	def __init__(self,parent,controler):
-		Frame.__init__(self,parent)
-		self['bg'] = COR_FUNDO
-		
-		logo = PhotoImage(file=diretorio_imagens+"icone_usuario.png")		
-		self.frame_logo = Frame(self,bg=COR_FUNDO,pady=50)
+		self.controler = controler
+		logo = PhotoImage(file=diretorio_imagens+"icone_usr_conf.png")		
+		self.frame_logo = Frame(self,bg=COR_FUNDO,padx=100,pady=100)
 		self.frame_logo.grid(row=0,column=0)
 		self.logo = Label(self.frame_logo,bg=COR_FUNDO)
 		self.logo["image"] = logo
 		self.logo.image = logo
 		self.logo.pack()
 		
-		self.frame = Frame(self, bg = COR_FUNDO,pady=10)
+		self.frame = Frame(self, bg = COR_FUNDO,padx=50,pady=50)
 		self.frame.grid(row=0,column=1)
 		self.frame_form = Frame(self.frame, bg = COR_FUNDO,pady=10)
 		self.frame_form.grid(row=0,column=1)
-		self.nome = Label(self.frame_form,border=2,relief=RIDGE,text="ID : ",font=FONTE_PADRAO)
-		self.nome.grid(row=0,column=0)
+		self.id = Label(self.frame_form,border=2,relief=RIDGE,text="ID : ",font=FONTE_PADRAO,width=10)
+		self.id.grid(row=0,column=0)
+		self.entrada_id = Entry(self.frame_form,width=30)
+		self.entrada_id.grid(row=0,column=1,ipady=ALTURA_ENTRY_PADRAO)
+		self.nome = Label(self.frame_form,border=2,relief=RIDGE,text="Nome : ",font=FONTE_PADRAO,width=10)
+		self.nome.grid(row=1,column=0)
 		self.entrada_nome = Entry(self.frame_form,width=30)
-		self.entrada_nome.grid(row=0,column=1,ipady=ALTURA_ENTRY_PADRAO)
-		self.botao_buscar = Button(self.frame_form,border=2,relief=TIPO_BORDA_BOTAO,text="Buscar",width=10, command=lambda:self.voltar(controler),font=("Comic Sans MS",11,"bold"))
-		self.botao_buscar.grid(row=0,column=2)
+		self.entrada_nome.grid(row=1,column=1,ipady=ALTURA_ENTRY_PADRAO)
+		self.botao_buscar = Button(self.frame_form,border=2,relief=RAISED,text="Buscar",width=10, command=self.buscar_usuario,font=("Comic Sans MS",12,"bold"))
+		self.botao_buscar.grid(row=1,column=2)
 		
-		self.frame_tabela = Frame(self.frame, bg = COR_FUNDO,pady=10)
+		self.frame_tabela = Frame(self.frame, bg = COR_FUNDO,padx=0,pady=10)
 		self.frame_tabela.grid(row=1,column=1)
+		self.label1 = Label(self.frame_tabela,border=2,relief=RIDGE,text="Resultado",font=FONTE_PADRAO,width=10)
+		self.label1.grid(row=0,column=0)
 		
 		self.dataCols = ['ID','Nome']
 		self.tree = ttk.Treeview(self.frame_tabela,columns=self.dataCols, show='headings')
-		self.tree.grid(row=0, column=0, sticky=tk.N + tk.S + tk.W + tk.E)
+		self.tree.grid(row=1, column=0, sticky=tk.N + tk.S + tk.W + tk.E)
 		#diminue a largura da coluna
 		self.tree.column("ID",minwidth=30,width=100)
 		self.tree.column("Nome",minwidth=100,width=200)
@@ -448,45 +446,72 @@ class UsuarioAtualizar(Frame):
 		xsb = ttk.Scrollbar(self.frame_tabela,orient=HORIZONTAL, command=self.tree.xview)
 		self.tree['yscroll'] = ysb.set
 		self.tree['xscroll'] = xsb.set
-		ysb.grid(row=0, column=1, sticky=tk.N + tk.S)
-		xsb.grid(row=1, column=0, sticky=tk.E + tk.W)
+		ysb.grid(row=1, column=1, sticky=tk.N + tk.S)
+		xsb.grid(row=2, column=0, sticky=tk.E + tk.W)
 		# Define o textos do cabeçalho (nome em maiúsculas)
 		for c in self.dataCols:
 			self.tree.heading(c, text=c.title())
-		# Dados:
-		self.data = [ (chr(ord('a')+i),'bbb') for i in range(3)]
-		# Insere cada item dos dados
-		for item in self.data:
-			self.tree.insert('', 'end', values  = item)
-		self.tree.bind('<Button-1>',self.item_atual)
-		self.frame_botao = Frame(self.frame,bg = COR_FUNDO,pady=10)
-		self.frame_botao.grid(row=2,column=1)
+		self.tree.bind('<Button>',self.item_atual)
+		self.frame_botao = Frame(self.frame,bg = COR_FUNDO,padx=0,pady=10)
+		self.frame_botao.grid(row=3,column=1)
 		#place_forget()
-		self.botao_atualizar = Button(self.frame_botao,border=TAMANHO_BORDA_BOTAO,relief=TIPO_BORDA_BOTAO,text="Fechar",width= 10, command=lambda:self.voltar(controler),font=("Comic Sans MS",11,"bold"))
-		self.botao_atualizar.pack()
-		self.botao_remover = Button(self.frame_botao,border=2,relief=TIPO_BORDA_BOTAO,text="Buscar",width=10, command=lambda:self.voltar(controler),font=("Comic Sans MS",11,"bold"))
-		self.botao_remover.pack()
-		self.botao_remover = Button(self.frame_botao,border=2,relief=TIPO_BORDA_BOTAO,text="Buscar",width=10, command=lambda:self.voltar(controler),font=("Comic Sans MS",11,"bold"))
-		self.botao_remover.pack()
-		#1982019192438
+		self.mostarbt = False
+		self.botao_voltar = Button(self.frame_botao,border=2,relief=TIPO_BORDA_BOTAO,text="Voltar",width=10, command=lambda:self.voltar(controler),font=("Comic Sans MS",11,"bold"))
+		self.botao_voltar.grid(row=0,column=2)
+		#2182019203132
 	def voltar(self,controler):
-		controler.show_frame(Login)
+		controler.show_frame(MenuUsuarioAdm)
 	def item_atual(self,event):
+		if self.tree.selection():
+			if not self.mostarbt:
+				self.botao_atualizar = Button(self.frame_botao,border=2,relief=TIPO_BORDA_BOTAO,text="Trocar senha",width= 10, command=self.trocar_senha,font=("Comic Sans MS",11,"bold"))
+				self.botao_atualizar.grid(row=0,column=0)
+				self.botao_remover = Button(self.frame_botao,border=2,relief=TIPO_BORDA_BOTAO,text="Remover",width=10, command=self.remover_usuario,font=("Comic Sans MS",11,"bold"))
+				self.botao_remover.grid(row=0,column=1)
+			self.mostarbt = True
+		else:
+			if self.mostarbt:
+				self.botao_atualizar.destroy()
+				self.botao_remover.destroy()
+				self.mostarbt = False
+	def buscar_usuario(self):
+		global user
+		user_id = self.entrada_id.get()
+		user_nome = self.entrada_nome.get()
 		#print(self.tree.selection())
 		#print(self.tree.focus())
 		#print(self.tree.index(self.tree.focus()))
 		#print(self.tree.get_children(self.tree.index(self.tree.focus())))
 		#print(self.tree.get_children([self.tree.selection()])['values'])
-		item = self.tree.item(self.tree.focus())['values']
-		if item:
-			#print(item)
-			self.tree.delete(self.tree.focus())
-class UsuarioRemover(Frame):
+		#item = self.tree.item(self.tree.focus())['values']
+		#print(item)
+		#self.tree.delete(self.tree.focus())
+		if ((not self.tree.selection()) or self.tree.get_children()) and self.mostarbt:
+			self.botao_atualizar.destroy()
+			self.botao_remover.destroy()
+			self.mostarbt = False
+		for i in self.tree.get_children():
+			self.tree.delete(i)
+		for id,nome in user.get_all_users():
+			if (user_nome or user_id) and ((id==user_id) or (user_nome in nome)):
+				self.tree.insert('', 'end', values  = [id,nome])
+	def remover_usuario(self):
+		global user
+		user.data['id'],user.data['nome'] = self.tree.item(self.tree.focus())['values']
+		self.tree.delete(self.tree.focus())
+		user.remove()
+		messagebox.showinfo("Comfirmação", "Remoção realizada com sucesso!")
+	def trocar_senha(self):
+		global user
+		user.data['id'] = self.tree.item(self.tree.focus())['values'][0]
+		user.get_user_not_password()
+		self.controler.show_frame(UsuarioAdmTrocarSenha)
+class UsuarioAdmTrocarSenha(Frame):
 	def __init__(self,parent,controler):
 		Frame.__init__(self,parent)
 		self['bg'] = COR_FUNDO
 		
-		logo = PhotoImage(file=diretorio_imagens+"icone_usuario.png")		
+		logo = PhotoImage(file=diretorio_imagens+"icone_usr_conf.png")
 		self.frame_logo = Frame(self,bg=COR_FUNDO,pady=50)
 		self.frame_logo.pack()
 		self.logo = Label(self.frame_logo,bg=COR_FUNDO)
@@ -496,25 +521,45 @@ class UsuarioRemover(Frame):
 		
 		self.frame = Frame(self, bg = COR_FUNDO,pady=10)
 		self.frame.pack()
+		Label(self.frame,border=2,relief=RIDGE,text='Trocar Senha',width=int(LARGURA_PADRAO/3),font=FONTE_PADRAO)
+		self.senha = Label(self.frame,border=2,relief=RIDGE,text='Senha : ',width=int(LARGURA_PADRAO/3),font=FONTE_PADRAO)
+		self.rsenha = Label(self.frame,border=2,relief=RIDGE,text='repita a senha : ',width=int(LARGURA_PADRAO/3),font=FONTE_PADRAO)
+		self.senha.grid(row=0,column=0)
+		self.rsenha.grid(row=1,column=0)
 		
-		self.nome = Label(self.frame,border=2,relief=RIDGE,text="id : ",width=int(LARGURA_PADRAO/2),font=FONTE_PADRAO)
+		self.entrada_senha = Entry(self.frame,width=80)
+		self.entrada_rsenha = Entry(self.frame,width=80)
 		
-		self.entrada_nome = Entry(self.frame,width=80)
-		self.nome.grid(row=0,column=0)
-		self.entrada_nome.grid(row=0,column=1,ipady=ALTURA_ENTRY_PADRAO)
+		self.entrada_senha.grid(row=0,column=1,ipady=ALTURA_ENTRY_PADRAO)
+		self.entrada_rsenha.grid(row=1,column=1,ipady=ALTURA_ENTRY_PADRAO)
 		
 		self.frame_botoes = Frame(self, bg = COR_FUNDO,pady=10)
 		self.frame_botoes.pack()
-		self.botao_buscar = Button(self.frame_botoes,border=8,relief=RIDGE,font=FONTE_PADRAO, text = "Buscar",width = int(LARGURA_PADRAO/3),command = lambda:self.valida_dados(controler),activebackground='green')
-		self.botao_buscar.grid(row=0,column=0)
-		self.botao_cancelar = Button(self.frame_botoes,border=8,relief=RIDGE,font=FONTE_PADRAO, text = "Cancelar",width = int(LARGURA_PADRAO/3),command = lambda:self.limpar_campos(controler),activebackground='green')
+		self.botao_comfirmar = Button(self.frame_botoes,border=8,relief=RIDGE,font=FONTE_PADRAO, text = "Trocar",width = int(LARGURA_PADRAO/3),command = lambda:self.valida_dados(controler),activebackground='green')
+		self.botao_comfirmar.grid(row=0,column=0)
+		self.botao_cancelar = Button(self.frame_botoes,border=8,relief=RIDGE,font=FONTE_PADRAO, text = "Cancelar",width = int(LARGURA_PADRAO/3),command = lambda:controler.show_frame(MenuUsuarioAdm),activebackground='green')
 		self.botao_cancelar.grid(row=0,column=10)
 		
 	def valida_dados(self, controler):
-		controler.show_frame(MenuUsuarios)
-	def limpar_campos(self, controler):
-		self.entrada_nome.delete(0, END)
-		controler.show_frame(MenuUsuarios)
+		global user
+		senha = self.entrada_senha.get()
+		rsenha = self.entrada_rsenha.get()
+		
+		if(senha=='' and rsenha==''):
+			messagebox.showwarning("Aviso", "Preencha os Campos.")
+		elif(senha==''):
+			messagebox.showwarning("Aviso", "Digite a nova Senha.")
+		elif(rsenha==''):
+			messagebox.showwarning("Aviso", "Repita a nova Senha.")
+		elif(senha==rsenha):
+			user.get_user_not_password()
+			user.data['password'] = senha
+			user.update()
+			messagebox.showinfo("Sucesso", user.data['nome']+"Sua senha foi atualizada.")
+			controler.show_frame(MenuUsuarioAdm)
+		else:
+			messagebox.showerror("Erro", "Senhas diferentes!")
+		
 #telas de funcionalidades de livros
 class LivroAdicionar(Frame):
 	def __init__(self,parent,controler):
@@ -536,36 +581,67 @@ class LivroAdicionar(Frame):
 		self.autor = Label(self.frame,border=2,relief=RIDGE,text="Autor : ",width=int(LARGURA_PADRAO/3),font=FONTE_PADRAO)
 		self.qtd_paginas = Label(self.frame,border=2,relief=RIDGE,text="Qtd paginas : ",width=int(LARGURA_PADRAO/3),font=FONTE_PADRAO)
 		self.ano = Label(self.frame,border=2,relief=RIDGE,text="Ano : ",width=int(LARGURA_PADRAO/3),font=FONTE_PADRAO)
+		self.qtd = Label(self.frame,border=2,relief=RIDGE,text="qtd livros : ",width=int(LARGURA_PADRAO/3),font=FONTE_PADRAO)
 		
-		self.entrada_titulo = Entry(self.frame,width=80)
-		self.entrada_autor = Entry(self.frame,width=80)
-		self.entrada_qtd_paginas = Entry(self.frame,width=80)
-		self.entrada_ano = Entry(self.frame,width=80)
+		self.entrada_titulo = Entry(self.frame,width=50)
+		self.entrada_autor = Entry(self.frame,width=50)
+		self.entrada_qtd_paginas = Entry(self.frame,width=50)
+		self.entrada_ano = Entry(self.frame,width=50)
+		self.entrada_qtd = Entry(self.frame,width=50)
 		
 		self.titulo.grid(row=0,column=0)
 		self.autor.grid(row=1,column=0)
 		self.qtd_paginas.grid(row=2,column=0)
 		self.ano.grid(row=3,column=0)
+		self.qtd.grid(row=4,column=0)
 		
 		self.entrada_titulo.grid(row=0,column=1,ipady=ALTURA_ENTRY_PADRAO)
 		self.entrada_autor.grid(row=1,column=1,ipady=ALTURA_ENTRY_PADRAO)
 		self.entrada_qtd_paginas.grid(row=2,column=1,ipady=ALTURA_ENTRY_PADRAO)
 		self.entrada_ano.grid(row=3,column=1,ipady=ALTURA_ENTRY_PADRAO)
+		self.entrada_qtd.grid(row=4,column=1,ipady=ALTURA_ENTRY_PADRAO)
 		
 		self.frame_botoes = Frame(self, bg = COR_FUNDO,pady=10)
 		self.frame_botoes.pack()
-		self.botao_salvar = Button(self.frame_botoes,border=8,relief=RIDGE,font=FONTE_PADRAO, text = "Salvar",width = int(LARGURA_PADRAO/3),command = lambda:self.valida_dados(controler),activebackground='green')
+		self.botao_salvar = Button(self.frame_botoes,border=8,relief=RIDGE,font=FONTE_PADRAO, text = "Salvar",width = int(LARGURA_PADRAO/3),command = lambda:self.valida_dados(controler),activebackground='green',bg= '#f0f0f0')
 		self.botao_salvar.grid(row=0,column=0)
-		self.botao_cancelar = Button(self.frame_botoes,border=8,relief=RIDGE,font=FONTE_PADRAO, text = "Cancelar",width = int(LARGURA_PADRAO/3),command = lambda:self.limpar_campos(controler),activebackground='green')
+		self.botao_cancelar = Button(self.frame_botoes,border=8,relief=RIDGE,font=FONTE_PADRAO, text = "Cancelar",width = int(LARGURA_PADRAO/3),command = lambda:self.limpar_campos(controler),activebackground='green',bg= '#f0f0f0')
 		self.botao_cancelar.grid(row=0,column=10)
 		
-	def valida_dados(self, controler):
-		controler.show_frame(MenuLivros)
-	def limpar_campos(self, controler):
-		self.entrada_titulo.delete(0, END)
-		self.entrada_autor.delete(0, END)
-		self.entrada_ano.delete(0, END)
-		controler.show_frame(MenuLivros)		
+		self.botao_salvar.bind('<Enter>',self.btsalvar_muda_cor)
+		self.botao_salvar.bind('<Leave>',self.btsalvar_padrao)
+		self.botao_cancelar.bind('<Enter>',self.btcancelar_muda_cor)
+		self.botao_cancelar.bind('<Leave>',self.btcancelar_padrao)
+		
+	def btsalvar_padrao(self,event):
+		self.botao_salvar["background"] = '#f0f0f0'
+	def btsalvar_muda_cor(self,event):
+		self.botao_salvar["background"] = 'green'
+	def btcancelar_padrao(self,event):
+		self.botao_cancelar["background"] = '#f0f0f0'
+	def btcancelar_muda_cor(self,event):
+		self.botao_cancelar["background"] = 'green'
+	def valida_dados(self,controler):
+		global livro
+		titulo = self.entrada_titulo.get()
+		autor = self.entrada_autor.get()
+		qtd_paginas = self.entrada_qtd_paginas.get()
+		ano = self.entrada_ano.get()
+		qtd = self.entrada_qtd.get()
+		if(titulo=='' and autor=='' and qtd_paginas=='' and ano=='' and qtd==''):
+			messagebox.showwarning("Aviso", "Preencha os Campos")
+		elif(titulo==''):
+			messagebox.showwarning("Aviso", "Preencha o Campo titulo")
+		elif(autor==''):
+			messagebox.showwarning("Aviso", "Preencha o Campo autor")
+		elif(ano==''):
+			messagebox.showwarning("Aviso", "Preencha o Campo ano")
+		else:
+			livro.create_book(self, titulo, autor,qtd_paginas, ano,qtd,qtd)
+			livro.add()
+			messagebox.showinfo("Comfirmação","Livro cadastrado com sucesso.")
+			controler.show_frame(MenuLivros)
+		
 class LivroBuscar(Frame):
 	def __init__(self,parent,controler):
 		Frame.__init__(self,parent)
@@ -603,8 +679,7 @@ class LivroBuscar(Frame):
 		self.botao_buscar = Button(self.frame_botoes,border=8,relief=RIDGE,font=FONTE_PADRAO, text = "Buscar",width = int(LARGURA_PADRAO/3),command = lambda:self.valida_dados(controler),activebackground='green')
 		self.botao_buscar.grid(row=0,column=0)
 		self.botao_cancelar = Button(self.frame_botoes,border=8,relief=RIDGE,font=FONTE_PADRAO, text = "Cancelar",width = int(LARGURA_PADRAO/3),command = lambda:self.limpar_campos(controler),activebackground='green')
-		self.botao_cancelar.grid(row=0,column=10)
-		
+		self.botao_cancelar.grid(row=0,column=10)	
 	def valida_dados(self, controler):
 		controler.show_frame(MenuLivros)
 	def limpar_campos(self, controler):
